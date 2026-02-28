@@ -615,8 +615,8 @@ export default function Home() {
   };
 
   return (
-    <div className="fridge-game min-h-screen px-4 py-6 text-slate-100 md:px-8">
-      <main className="mx-auto flex w-full max-w-6xl flex-col gap-4">
+    <div className={`fridge-game min-h-screen py-6 text-slate-100 ${screen === "cooking" ? "px-1 md:px-2" : "px-4 md:px-8"}`}>
+      <main className={`mx-auto flex w-full flex-col gap-4 ${screen === "cooking" ? "max-w-7xl" : "max-w-6xl"}`}>
         <header className="rounded-3xl border border-orange-200/30 bg-slate-900/70 p-4 shadow-2xl backdrop-blur md:p-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-3">
@@ -629,7 +629,7 @@ export default function Home() {
                 />
               </div>
               <p className="text-xs font-bold tracking-[0.2em] text-amber-300">
-                PIXEL ART x AI COOKING SIM
+                Please, My Fridge!
               </p>
               <h1 className="mt-1 text-xl font-black text-amber-50 md:text-3xl">
                 냉장고를 부탁해
@@ -668,7 +668,7 @@ export default function Home() {
 
         <section className={`grid gap-4 ${screen === "cooking" ? "" : "lg:grid-cols-[2fr_1fr]"}`}>
           <article
-            className="relative overflow-hidden rounded-3xl border border-orange-200/20 bg-slate-900/75 p-4 shadow-xl backdrop-blur md:p-6"
+            className={`relative overflow-hidden rounded-3xl border border-orange-200/20 bg-slate-900/75 shadow-xl backdrop-blur ${screen === "cooking" ? "p-2 md:p-3" : "p-4 md:p-6"}`}
             style={{
               backgroundImage: `linear-gradient(rgba(15,18,27,0.78), rgba(15,18,27,0.78)), url(${SCREEN_BACKGROUNDS[screen]})`,
               backgroundSize: "cover",
@@ -915,7 +915,7 @@ export default function Home() {
                 )}
 
                 {/* === 3-Column Game Layout === */}
-                <div className="grid grid-cols-1 gap-3 lg:grid-cols-[1fr_auto_1fr]">
+                <div className="grid grid-cols-1 gap-2 lg:grid-cols-[1fr_200px_1fr]">
 
                   {/* ── LEFT: Ingredient Tray ── */}
                   <div className="space-y-2">
@@ -925,7 +925,7 @@ export default function Home() {
                         {selectedIngredientIds.size > 0 ? `${selectedIngredientIds.size}개 선택` : "클릭 선택"}
                       </span>
                     </div>
-                    <div className="game-scrollbar grid max-h-[58vh] grid-cols-2 gap-1.5 overflow-y-auto rounded-2xl border border-slate-700 bg-slate-800/60 p-2">
+                    <div className="game-scrollbar grid max-h-[58vh] grid-cols-3 gap-1 overflow-y-auto rounded-2xl border border-slate-700 bg-slate-800/60 p-1.5">
                       {inventory.map((item) => {
                         const isSelected = selectedIngredientIds.has(item.id);
                         const isLoadingArt = loadingArtIds.has(item.id);
@@ -972,7 +972,7 @@ export default function Home() {
                   </div>
 
                   {/* ── CENTER: Rumi Character + Cooking Log + Finish ── */}
-                  <div className="flex flex-col items-center gap-3 lg:w-56">
+                  <div className="flex flex-col items-center gap-3">
                     {/* Rumi Character */}
                     <div className="flex flex-col items-center">
                       <div className="relative h-28 w-28 animate-float overflow-hidden rounded-2xl border-2 border-amber-300/30 bg-gradient-to-b from-slate-800 to-slate-900 shadow-lg shadow-amber-400/10">
@@ -1033,9 +1033,9 @@ export default function Home() {
                   </div>
 
                   {/* ── RIGHT: Cooking Tools ── */}
-                  <div className="space-y-2">
+                  <div className="space-y-1.5">
                     <h3 className="text-xs font-bold tracking-wider text-amber-300">🔧 조리 도구</h3>
-                    <div className="grid grid-cols-1 gap-1.5">
+                    <div className="grid grid-cols-1 gap-1">
                       {TOOLS.map((tool) => (
                         <button
                           key={tool.id}
