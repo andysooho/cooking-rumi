@@ -1,0 +1,82 @@
+import type { CookingLog, GameMode, RecipePlan } from "@/types/game";
+
+function modeLabel(mode: GameMode): string {
+  return mode === "delicious" ? "맛있는 음식" : "창의적인 음식";
+}
+
+export function buildIngredientAnalysisPrompt(): string {
+  return [
+    "당신은 전문 요리사이자 식재료 감별사입니다.",
+    "사용자가 제공한 이미지에서 요리에 사용 가능한 식재료를 식별하세요.",
+    "식재료가 아닌 물체는 제외하고, 조미료/양념은 포함하세요.",
+    "한국어 이름(name)과 영어 이름(nameEn)을 함께 주세요.",
+    "반드시 JSON으로만 답하세요.",
+    '형식: {"ingredients":[{"name":"양파","nameEn":"onion","category":"채소"}],"confidence":0.9}',
+  ].join("\n");
+}
+
+export function buildRecipeSelectionPrompt(
+  mode: GameMode,
+  ingredientNames: string[],
+): string {
+  const modeText = mode === "delicious" ? "가장 맛있는 정통 요리" : "가장 독창적인 퓨전 요리";
+  return [
+    `당신은 ${modeLabel(mode)} 전문 셰프입니다.`,
+    `주어진 재료로 만들 수 있는 ${modeText}를 1개 선정하세요.`,
+    `재료: ${ingredientNames.join(", ")}`,
+    "반드시 아래 JSON 형식만 출력하세요.",
+    '{"dishName":"요리명","dishNameEn":"English Name","description":"짧은 설명","hints":["힌트1","힌트2","힌트3"],"recipe":{"steps":[{"order":1,"action":"마늘을 다진다","tool":"도마","ingredients":["마늘"],"result":"다진 마늘"}],"tips":"팁","totalTime":"20분"}}',
+    "steps는 최소 5개 이상으로 작성하세요.",
+    "tool은 도마, 프라이팬, 냄비, 믹싱볼, 오븐, 그릴 중 하나를 우선 사용하세요.",
+  ].join("\n");
+}
+
+export function buildCookingActionPrompt(
+  ingredient: string,
+  tool: string,
+): string {
+  return [
+    "당신은 요리 게임의 AI입니다.",
+    "재료와 조리도구의 조합 결과를 짧고 명확하게 JSON으로 답하세요.",
+    `입력: ${ingredient} + ${tool}`,
+    '형식: {"result":"다진 양파","resultEn":"chopped onion","reaction":"좋은 선택이야!","emoji":"🔪"}',
+    "한국어 중심으로 작성하세요.",
+  ].join("\n");
+}
+
+export function buildCookingArtPrompt(resultName: string): string {
+  return [
+    `Create a 64x64 pixel art sprite of ${resultName} on a transparent background.`,
+    "16-bit retro game style, clean outlines, vibrant colors.",
+    "Center the item and keep a simple readable silhouette.",
+  ].join(" ");
+}
+
+export function buildPixelArtPrompt(ingredientNameEn: string): string {
+  return [
+    `Create a 64x64 pixel art sprite of a ${ingredientNameEn} on a transparent background.`,
+    "16-bit retro game style, clean outlines, vibrant colors.",
+    "The item should be centered and fill about 70% of the canvas.",
+    "Style reference: classic SNES/GBA RPG item icons.",
+  ].join(" ");
+}
+
+export function buildEvaluationPrompt(
+  mode: GameMode,
+  recipe: RecipePlan,
+  logs: CookingLog[],
+  finalDish: string,
+): string {
+  return [
+    '당신은 친근한 AI 셰프 "루미"입니다.',
+    `게임 모드: ${modeLabel(mode)}`,
+    "정답 레시피와 사용자의 조리 과정을 비교해 평가하세요.",
+    "재미있고 따뜻한 말투를 사용하되, 구체적 피드백을 주세요.",
+    `정답 레시피 JSON: ${JSON.stringify(recipe)}`,
+    `사용자 조리 로그 JSON: ${JSON.stringify(logs)}`,
+    `최종 요리: ${finalDish}`,
+    "반드시 JSON으로만 응답하세요.",
+    '{"matchRate":87,"evaluation":"평가 문장","missedSteps":["빠진 단계"],"bonusPoints":["잘한 점"],"fullRecipeNarrative":"전체 레시피 설명"}',
+  ].join("\n");
+}
+

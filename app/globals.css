@@ -1,8 +1,13 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #111318;
+  --foreground: #f4eee1;
+  --pixel-amber: #f5b13a;
+  --pixel-orange: #df7f34;
+  --pixel-red: #b84a34;
+  --pixel-ink: #1b1f2a;
+  --pixel-panel: #202635;
 }
 
 @theme inline {
@@ -12,15 +17,26 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-geist-sans), sans-serif;
+  min-height: 100vh;
+}
+
+.fridge-game {
+  background:
+    radial-gradient(circle at 20% 20%, rgba(245, 177, 58, 0.14) 0%, rgba(245, 177, 58, 0) 48%),
+    radial-gradient(circle at 80% 0%, rgba(184, 74, 52, 0.14) 0%, rgba(184, 74, 52, 0) 40%),
+    linear-gradient(160deg, #151923 0%, #0e1118 45%, #171923 100%);
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+pre {
+  font-family: var(--font-geist-mono), monospace;
 }

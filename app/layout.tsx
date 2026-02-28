@@ -13,8 +13,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Gemini SDK Test Lab",
-  description: "Gemini chat, image, and video generation playground",
+  title: "냉장고를 부탁해 | Pixel Art AI Cooking Game",
+  description:
+    "냉장고 사진을 업로드하고 AI 셰프 루미와 함께 픽셀 아트 쿠킹 미션을 완성하는 웹 게임",
 };
 
 export default function RootLayout({
