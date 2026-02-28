@@ -50,3 +50,204 @@ textarea {
 pre {
   font-family: var(--font-geist-mono), monospace;
 }
+
+/* ───────────── Game-like Animations ───────────── */
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 8px rgba(245, 177, 58, 0.3); }
+  50% { box-shadow: 0 0 20px rgba(245, 177, 58, 0.6), 0 0 40px rgba(245, 177, 58, 0.2); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-4px); }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-3px); }
+  75% { transform: translateX(3px); }
+}
+
+@keyframes slide-in-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pixel-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.animate-spin-slow {
+  animation: spin 1.2s linear infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.animate-float {
+  animation: float 2.5s ease-in-out infinite;
+}
+
+.animate-shake {
+  animation: shake 0.4s ease-in-out;
+}
+
+.animate-slide-in {
+  animation: slide-in-up 0.35s ease-out;
+}
+
+.animate-blink {
+  animation: pixel-blink 1s step-end infinite;
+}
+
+/* ───────────── Ingredient card selection ───────────── */
+
+.ingredient-card {
+  position: relative;
+  transition: transform 0.12s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.ingredient-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(245, 177, 58, 0.15);
+}
+
+.ingredient-card.selected {
+  border-color: rgba(245, 177, 58, 0.8) !important;
+  box-shadow: 0 0 12px rgba(245, 177, 58, 0.3), inset 0 0 8px rgba(245, 177, 58, 0.08);
+}
+
+.ingredient-card.selected::after {
+  content: "✓";
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #f5b13a;
+  color: #1b1f2a;
+  font-size: 10px;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+/* ───────────── Tool drop zone highlight ───────────── */
+
+.tool-zone {
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.tool-zone:hover,
+.tool-zone.drag-over {
+  border-color: rgba(245, 177, 58, 0.7) !important;
+  box-shadow: 0 0 20px rgba(245, 177, 58, 0.2), inset 0 0 12px rgba(245, 177, 58, 0.06);
+  transform: scale(1.03);
+}
+
+.tool-zone.drag-over {
+  background: rgba(245, 177, 58, 0.08) !important;
+}
+
+/* ───────────── Cooking Log styling ───────────── */
+
+.cooking-log-item {
+  animation: slide-in-up 0.3s ease-out;
+  position: relative;
+  padding-left: 1rem;
+}
+
+.cooking-log-item::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #f5b13a;
+}
+
+/* ───────────── Loading spinner ───────────── */
+
+.loading-spinner {
+  width: 28px;
+  height: 28px;
+  border: 3px solid rgba(245, 177, 58, 0.2);
+  border-top-color: #f5b13a;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  display: inline-block;
+}
+
+.loading-spinner-sm {
+  width: 16px;
+  height: 16px;
+  border-width: 2px;
+}
+
+/* ───────────── Hint modal overlay ───────────── */
+
+.hint-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(6px);
+  animation: slide-in-up 0.2s ease-out;
+}
+
+.hint-panel {
+  max-width: 480px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+/* ───────────── Progress bar pixel style ───────────── */
+
+.pixel-progress {
+  image-rendering: pixelated;
+  background: repeating-linear-gradient(
+    90deg,
+    transparent 0px,
+    transparent 3px,
+    rgba(0,0,0,0.1) 3px,
+    rgba(0,0,0,0.1) 4px
+  );
+}
+
+/* ───────────── Scrollbar styling ───────────── */
+
+.game-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.game-scrollbar::-webkit-scrollbar-track {
+  background: rgba(30, 35, 50, 0.5);
+  border-radius: 3px;
+}
+
+.game-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(245, 177, 58, 0.3);
+  border-radius: 3px;
+}
+
+.game-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(245, 177, 58, 0.5);
+}

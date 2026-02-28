@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useCallback, useMemo, useState } from "react";
 
 import type {
   CookingActionResponse,
@@ -190,15 +190,15 @@ function createEmergencyRecipe(mode: GameMode, ingredients: Ingredient[]): Recip
     hints:
       mode === "delicious"
         ? [
-            "향채를 먼저 손질하면 풍미가 좋아져.",
-            "소스 베이스를 먼저 잡는 요리야.",
-            "중간 재료를 조합해 완성해봐.",
-          ]
+          "향채를 먼저 손질하면 풍미가 좋아져.",
+          "소스 베이스를 먼저 잡는 요리야.",
+          "중간 재료를 조합해 완성해봐.",
+        ]
         : [
-            "재료를 한 번 이상 변형해봐.",
-            "같은 재료를 다른 도구로 다시 조리해도 좋아.",
-            "마지막엔 조합의 의외성이 핵심이야.",
-          ],
+          "재료를 한 번 이상 변형해봐.",
+          "같은 재료를 다른 도구로 다시 조리해도 좋아.",
+          "마지막엔 조합의 의외성이 핵심이야.",
+        ],
     recipe: {
       steps: [
         {
@@ -286,6 +286,10 @@ export default function Home() {
   const [evaluation, setEvaluation] = useState<CookingEvaluation | null>(null);
   const [finalDishArt, setFinalDishArt] = useState<string | null>(null);
 
+  const [selectedIngredientIds, setSelectedIngredientIds] = useState<Set<string>>(new Set());
+  const [showHintModal, setShowHintModal] = useState(false);
+  const [loadingArtIds, setLoadingArtIds] = useState<Set<string>>(new Set());
+
   const stagePercent =
     (SCREEN_ORDER.indexOf(screen) / (SCREEN_ORDER.length - 1)) * 100;
 
@@ -296,6 +300,15 @@ export default function Home() {
   const finalDish = currentDishName || cookingLogs.at(-1)?.result || "미완성 요리";
 
   const canFinishCooking = cookingLogs.length >= 1;
+
+  const toggleSelectIngredient = useCallback((id: string) => {
+    setSelectedIngredientIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }, []);
 
   const onModeSelect = (nextMode: GameMode) => {
     setMode(nextMode);
@@ -441,26 +454,23 @@ export default function Home() {
     }
   };
 
-  const onDropIngredientToTool = async (ingredientId: string, tool: ToolDef) => {
-    if (isActionLoading) {
-      return;
-    }
-    const ingredient = ingredients.find((item) => item.id === ingredientId);
-    if (!ingredient) {
-      return;
-    }
+  const onDropIngredientToTool = async (ingredientIds: string[], tool: ToolDef) => {
+    if (isActionLoading) return;
+    const selected = ingredients.filter((item) => ingredientIds.includes(item.id));
+    if (selected.length === 0) return;
 
     setIsActionLoading(true);
     setGlobalError(null);
 
     try {
+      const ingredientNames = selected.map((item) => item.name).join(" + ");
       const action = await postJson<CookingActionResponse>("/api/cooking-action", {
-        ingredient: ingredient.name,
+        ingredient: ingredientNames,
         tool: tool.name,
         model: DEFAULT_ACTION_MODEL,
       });
 
-      const resultName = action.result || `${ingredient.name} 조리 결과`;
+      const resultName = action.result || `${ingredientNames} 조리 결과`;
       const newIngredientId = `${slugify(resultName)}-${crypto.randomUUID().slice(0, 8)}`;
 
       const newIngredient: Ingredient = {
@@ -472,9 +482,9 @@ export default function Home() {
 
       const newLog: CookingLog = {
         id: crypto.randomUUID(),
-        ingredient: ingredient.name,
+        ingredient: ingredientNames,
         tool: tool.name,
-        action: `${ingredient.name} + ${tool.name}`,
+        action: `${ingredientNames} + ${tool.name}`,
         result: resultName,
         reaction: action.reaction,
         createdAt: new Date().toISOString(),
@@ -484,7 +494,9 @@ export default function Home() {
       setCookingLogs((prev) => [...prev, newLog]);
       setRumiMessage(action.reaction || "좋아, 다음 단계로 이어가 보자!");
       setCurrentDishName(resultName);
+      setSelectedIngredientIds(new Set());
 
+      setLoadingArtIds((prev) => new Set(prev).add(newIngredientId));
       void postJson<{ imageDataUrl: string }>("/api/generate-cooking-art", {
         resultName,
         model: DEFAULT_IMAGE_MODEL,
@@ -498,8 +510,13 @@ export default function Home() {
             ),
           );
         })
-        .catch(() => {
-          // Keep text-only fallback on the client when art generation fails.
+        .catch(() => { })
+        .finally(() => {
+          setLoadingArtIds((prev) => {
+            const next = new Set(prev);
+            next.delete(newIngredientId);
+            return next;
+          });
         });
     } catch (error) {
       setGlobalError(getErrorMessage(error));
@@ -557,6 +574,9 @@ export default function Home() {
     setFinalDishArt(null);
     setGlobalError(null);
     setRumiMessage("오늘 냉장고 재료로 어떤 요리를 만들지 궁금해!");
+    setSelectedIngredientIds(new Set());
+    setShowHintModal(false);
+    setLoadingArtIds(new Set());
   };
 
   const onShareResult = async () => {
@@ -622,11 +642,10 @@ export default function Home() {
             {SCREEN_ORDER.map((item) => (
               <span
                 key={item}
-                className={`rounded-lg px-2 py-1 ${
-                  item === screen
-                    ? "bg-amber-300 text-slate-900"
-                    : "bg-slate-800 text-slate-300"
-                }`}
+                className={`rounded-lg px-2 py-1 ${item === screen
+                  ? "bg-amber-300 text-slate-900"
+                  : "bg-slate-800 text-slate-300"
+                  }`}
               >
                 {SCREEN_LABELS[item]}
               </span>
@@ -634,7 +653,7 @@ export default function Home() {
           </div>
         </header>
 
-        <section className="grid gap-4 lg:grid-cols-[2fr_1fr]">
+        <section className={`grid gap-4 ${screen === "cooking" ? "" : "lg:grid-cols-[2fr_1fr]"}`}>
           <article
             className="relative overflow-hidden rounded-3xl border border-orange-200/20 bg-slate-900/75 p-4 shadow-xl backdrop-blur md:p-6"
             style={{
@@ -845,120 +864,238 @@ export default function Home() {
             ) : null}
 
             {screen === "cooking" ? (
-              <div className="grid gap-4 xl:grid-cols-[1fr_1fr]">
-                <div className="space-y-3">
-                  <h3 className="text-sm font-bold tracking-wider text-amber-300">
-                    재료 트레이 (드래그 가능)
-                  </h3>
-                  <div className="grid max-h-[420px] grid-cols-2 gap-2 overflow-y-auto rounded-2xl border border-slate-700 bg-slate-800/80 p-2 md:grid-cols-3">
-                    {inventory.map((item) => (
-                      <div
-                        key={item.id}
-                        draggable
-                        onDragStart={(event) => {
-                          event.dataTransfer.setData("text/plain", item.id);
-                        }}
-                        className="cursor-grab rounded-xl border border-slate-600 bg-slate-900/70 p-2 active:cursor-grabbing"
-                      >
-                        <div className="mx-auto flex h-16 w-16 items-center justify-center overflow-hidden rounded-lg border border-slate-700 bg-slate-950">
-                          {item.imageDataUrl ? (
-                            <Image
-                              src={item.imageDataUrl}
-                              alt={item.name}
-                              width={64}
-                              height={64}
-                              unoptimized
-                              className="h-16 w-16 object-contain"
-                            />
-                          ) : (
-                            <span className="text-xs text-slate-400">{item.name.slice(0, 4)}</span>
-                          )}
-                        </div>
-                        <p className="mt-1 line-clamp-2 text-[11px] font-semibold text-slate-200">
-                          {item.name}
-                        </p>
-                        <p className="text-[10px] text-slate-400">
-                          {item.source === "fridge" ? "원재료" : "중간결과"}
-                        </p>
-                      </div>
-                    ))}
+              <div className="space-y-4">
+                {/* Rumi compact bar (sidebar is hidden in cooking) */}
+                <div className="flex items-center gap-3 rounded-2xl border border-orange-200/20 bg-slate-800/60 px-4 py-2">
+                  <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-lg border border-slate-700 bg-slate-800">
+                    <Image src="/assets/sprites/rumi-chef.png" alt="루미" fill className="object-contain" />
+                  </div>
+                  <p className="text-sm text-amber-50">{rumiMessage}</p>
+                  {cookingLogs.length > 0 && (
+                    <span className="ml-auto shrink-0 rounded-lg bg-amber-400/15 px-2 py-0.5 text-[10px] font-bold text-amber-300">
+                      조리 {cookingLogs.length}회
+                    </span>
+                  )}
+                </div>
+                {globalError && (
+                  <div className="rounded-xl border border-rose-300/40 bg-rose-500/10 p-3 text-sm text-rose-100">
+                    {globalError}
+                  </div>
+                )}
+                {/* Top bar: mission name + hint button */}
+                <div className="flex items-center justify-between rounded-2xl border border-amber-300/20 bg-amber-400/10 px-4 py-3">
+                  <div>
+                    <p className="text-[10px] uppercase tracking-[0.2em] text-amber-400">🎯 Mission</p>
+                    <p className="text-lg font-black text-amber-100">{recipe?.dishName ?? "요리"}</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {isActionLoading && (
+                      <span className="flex items-center gap-2 rounded-lg border border-amber-300/30 bg-amber-400/10 px-3 py-1.5 text-xs text-amber-200">
+                        <span className="loading-spinner loading-spinner-sm" /> 조리 중...
+                      </span>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => setShowHintModal(true)}
+                      className="flex h-10 w-10 items-center justify-center rounded-xl border border-amber-300/40 bg-amber-400/15 text-lg transition hover:bg-amber-300/25 animate-float"
+                      title="힌트 다시 보기"
+                    >
+                      ❓
+                    </button>
                   </div>
                 </div>
 
-                <div className="space-y-3">
-                  <h3 className="text-sm font-bold tracking-wider text-amber-300">
-                    조리 도구 영역 (드롭)
-                  </h3>
-                  <div className="grid grid-cols-2 gap-2">
-                    {TOOLS.map((tool) => (
-                      <button
-                        key={tool.id}
-                        type="button"
-                        onDragOver={(event) => event.preventDefault()}
-                        onDrop={(event) => {
-                          event.preventDefault();
-                          const ingredientId = event.dataTransfer.getData("text/plain");
-                          if (ingredientId) {
-                            void onDropIngredientToTool(ingredientId, tool);
-                          }
-                        }}
-                        className="rounded-xl border border-amber-200/20 bg-slate-800/80 p-3 text-left transition hover:border-amber-300"
-                      >
-                        <div className="flex items-center gap-2">
-                          <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-lg border border-slate-700 bg-slate-900">
-                            <Image
-                              src={tool.assetPath}
-                              alt={tool.name}
-                              width={48}
-                              height={48}
-                              className="h-10 w-10 object-contain"
-                            />
-                          </div>
-                          <div>
-                            <p className="text-sm font-bold text-amber-100">
-                              {tool.emoji} {tool.name}
+                {/* Main cooking area */}
+                <div className="grid gap-4 lg:grid-cols-[1fr_1fr]">
+                  {/* Ingredient tray */}
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-sm font-bold tracking-wider text-amber-300">
+                        🧊 재료 트레이
+                      </h3>
+                      <span className="rounded-lg bg-slate-800 px-2 py-0.5 text-[10px] text-slate-400">
+                        {selectedIngredientIds.size > 0 ? `${selectedIngredientIds.size}개 선택됨` : "클릭으로 선택"}
+                      </span>
+                    </div>
+                    <div className="game-scrollbar grid max-h-[50vh] grid-cols-2 gap-2 overflow-y-auto rounded-2xl border border-slate-700 bg-slate-800/60 p-2 md:grid-cols-3">
+                      {inventory.map((item) => {
+                        const isSelected = selectedIngredientIds.has(item.id);
+                        const isLoadingArt = loadingArtIds.has(item.id);
+                        return (
+                          <div
+                            key={item.id}
+                            draggable
+                            onClick={() => toggleSelectIngredient(item.id)}
+                            onDragStart={(event) => {
+                              const ids = isSelected
+                                ? Array.from(selectedIngredientIds)
+                                : [item.id];
+                              event.dataTransfer.setData("text/plain", JSON.stringify(ids));
+                            }}
+                            className={`ingredient-card cursor-grab rounded-xl border bg-slate-900/70 p-2 active:cursor-grabbing ${isSelected ? "selected border-amber-400/80" : "border-slate-600"
+                              }`}
+                          >
+                            <div className="mx-auto flex h-16 w-16 items-center justify-center overflow-hidden rounded-lg border border-slate-700 bg-slate-950">
+                              {isLoadingArt ? (
+                                <span className="loading-spinner loading-spinner-sm" />
+                              ) : item.imageDataUrl ? (
+                                <Image
+                                  src={item.imageDataUrl}
+                                  alt={item.name}
+                                  width={64}
+                                  height={64}
+                                  unoptimized
+                                  className="h-16 w-16 object-contain"
+                                />
+                              ) : (
+                                <span className="text-xs text-slate-400">{item.name.slice(0, 4)}</span>
+                              )}
+                            </div>
+                            <p className="mt-1 line-clamp-2 text-center text-[11px] font-semibold text-slate-200">
+                              {item.name}
                             </p>
-                            <p className="text-[10px] text-slate-400">여기로 재료를 드롭</p>
-                          </div>
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-
-                  <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-3">
-                    <p className="text-xs font-bold tracking-wider text-amber-300">조리 로그</p>
-                    <div className="mt-2 max-h-40 space-y-1 overflow-y-auto text-xs text-slate-200">
-                      {cookingLogs.length === 0 ? (
-                        <p className="text-slate-400">아직 조리 내역이 없습니다.</p>
-                      ) : (
-                        cookingLogs
-                          .slice()
-                          .reverse()
-                          .map((log) => (
-                            <p key={log.id}>
-                              {log.action} = <span className="text-amber-200">{log.result}</span>
+                            <p className="text-center text-[10px] text-slate-400">
+                              {item.source === "fridge" ? "🥬 원재료" : "🍳 중간결과"}
                             </p>
-                          ))
-                      )}
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
 
-                  <div className="flex flex-wrap gap-2">
+                  {/* Tool zone + cooking log */}
+                  <div className="space-y-3">
+                    <h3 className="text-sm font-bold tracking-wider text-amber-300">
+                      🔧 조리 도구
+                    </h3>
+                    <div className="grid grid-cols-2 gap-2">
+                      {TOOLS.map((tool) => (
+                        <button
+                          key={tool.id}
+                          type="button"
+                          onDragOver={(event) => {
+                            event.preventDefault();
+                            event.currentTarget.classList.add("drag-over");
+                          }}
+                          onDragLeave={(event) => {
+                            event.currentTarget.classList.remove("drag-over");
+                          }}
+                          onDrop={(event) => {
+                            event.preventDefault();
+                            event.currentTarget.classList.remove("drag-over");
+                            try {
+                              const raw = event.dataTransfer.getData("text/plain");
+                              const ids: string[] = JSON.parse(raw);
+                              if (ids.length > 0) {
+                                void onDropIngredientToTool(ids, tool);
+                              }
+                            } catch {
+                              const single = event.dataTransfer.getData("text/plain");
+                              if (single) void onDropIngredientToTool([single], tool);
+                            }
+                          }}
+                          onClick={() => {
+                            if (selectedIngredientIds.size > 0) {
+                              void onDropIngredientToTool(Array.from(selectedIngredientIds), tool);
+                            }
+                          }}
+                          className="tool-zone rounded-xl border border-amber-200/20 bg-slate-800/80 p-3 text-left"
+                        >
+                          <div className="flex items-center gap-2">
+                            <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-lg border border-slate-700 bg-slate-900">
+                              <Image
+                                src={tool.assetPath}
+                                alt={tool.name}
+                                width={48}
+                                height={48}
+                                className="h-10 w-10 object-contain"
+                              />
+                            </div>
+                            <div>
+                              <p className="text-sm font-bold text-amber-100">
+                                {tool.emoji} {tool.name}
+                              </p>
+                              <p className="text-[10px] text-slate-400">드래그 또는 클릭</p>
+                            </div>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Cooking log */}
+                    <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-3">
+                      <p className="text-xs font-bold tracking-wider text-amber-300">📋 조리 로그</p>
+                      <div className="game-scrollbar mt-2 max-h-44 space-y-2 overflow-y-auto text-xs text-slate-200">
+                        {cookingLogs.length === 0 ? (
+                          <p className="text-slate-400 italic">아직 조리 내역이 없습니다.</p>
+                        ) : (
+                          cookingLogs
+                            .slice()
+                            .reverse()
+                            .map((log) => (
+                              <div key={log.id} className="cooking-log-item flex items-center gap-1.5">
+                                <span className="text-slate-300">{log.ingredient}</span>
+                                <span className="text-amber-400">+</span>
+                                <span className="text-slate-300">{log.tool}</span>
+                                <span className="text-amber-400">=</span>
+                                <span className="font-bold text-amber-200">{log.result}</span>
+                              </div>
+                            ))
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Finish button */}
                     <button
                       type="button"
                       onClick={onFinishCooking}
                       disabled={!canFinishCooking || isEvaluating || isActionLoading}
-                      className="rounded-xl bg-emerald-400 px-4 py-2 text-sm font-bold text-slate-900 transition hover:bg-emerald-300 disabled:cursor-not-allowed disabled:bg-emerald-200/60"
+                      className="w-full rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-400 px-4 py-3 text-sm font-black text-slate-900 shadow-lg transition hover:from-emerald-400 hover:to-emerald-300 disabled:cursor-not-allowed disabled:from-emerald-200/60 disabled:to-emerald-200/60"
                     >
-                      {isEvaluating ? "AI 평가 중..." : "🍽️ 요리 완료!"}
+                      {isEvaluating ? (
+                        <span className="flex items-center justify-center gap-2">
+                          <span className="loading-spinner loading-spinner-sm" /> AI 평가 중...
+                        </span>
+                      ) : (
+                        "🍽️ 요리 완료!"
+                      )}
                     </button>
-                    {isActionLoading ? (
-                      <span className="rounded-xl border border-slate-700 bg-slate-900/80 px-3 py-2 text-xs text-slate-200">
-                        조리 액션 처리 중...
-                      </span>
-                    ) : null}
                   </div>
                 </div>
+
+                {/* Hint modal */}
+                {showHintModal && (
+                  <div className="hint-overlay" onClick={() => setShowHintModal(false)}>
+                    <div
+                      className="hint-panel rounded-3xl border border-amber-300/30 bg-slate-900/95 p-6 shadow-2xl backdrop-blur"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-lg font-black text-amber-200">💡 힌트</h3>
+                        <button
+                          type="button"
+                          onClick={() => setShowHintModal(false)}
+                          className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-700 bg-slate-800 text-sm text-slate-300 transition hover:bg-slate-700"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                      <div className="mt-4 space-y-2">
+                        {(recipe?.hints ?? []).map((hint, index) => (
+                          <div
+                            key={`${hint}-${index}`}
+                            className="animate-slide-in rounded-xl border border-amber-300/20 bg-amber-400/10 p-3 text-sm text-amber-50"
+                          >
+                            💡 힌트 {index + 1}: {hint}
+                          </div>
+                        ))}
+                      </div>
+                      <p className="mt-4 text-center text-xs text-slate-400">
+                        목표 요리: <span className="font-bold text-amber-200">{recipe?.dishName}</span>
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
             ) : null}
 
@@ -1049,43 +1186,45 @@ export default function Home() {
             ) : null}
           </article>
 
-          <aside className="space-y-4">
-            <div className="rounded-3xl border border-orange-200/20 bg-slate-900/75 p-4 shadow-xl backdrop-blur">
-              <div className="flex items-center gap-3">
-                <div className="relative h-16 w-16 overflow-hidden rounded-xl border border-slate-700 bg-slate-800">
-                  <Image
-                    src="/assets/sprites/rumi-chef.png"
-                    alt="루미"
-                    fill
-                    className="object-contain"
-                  />
+          {screen !== "cooking" && (
+            <aside className="space-y-4">
+              <div className="rounded-3xl border border-orange-200/20 bg-slate-900/75 p-4 shadow-xl backdrop-blur">
+                <div className="flex items-center gap-3">
+                  <div className="relative h-16 w-16 overflow-hidden rounded-xl border border-slate-700 bg-slate-800">
+                    <Image
+                      src="/assets/sprites/rumi-chef.png"
+                      alt="루미"
+                      fill
+                      className="object-contain"
+                    />
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-amber-200">AI 셰프 루미</p>
+                    <p className="text-xs text-slate-400">실시간 코칭 중</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm font-bold text-amber-200">AI 셰프 루미</p>
-                  <p className="text-xs text-slate-400">실시간 코칭 중</p>
+                <div className="mt-3 rounded-xl border border-amber-200/20 bg-amber-300/10 p-3 text-sm text-amber-50">
+                  {rumiMessage}
                 </div>
+                {cookingLogs.length > 0 && (
+                  <div className="mt-2 flex items-center gap-2">
+                    <span className="rounded-lg bg-amber-400/15 px-2 py-0.5 text-[10px] font-bold text-amber-300">
+                      조리 {cookingLogs.length}회
+                    </span>
+                    <span className="rounded-lg bg-slate-800 px-2 py-0.5 text-[10px] text-slate-400">
+                      {modeLabel(mode)}
+                    </span>
+                  </div>
+                )}
               </div>
-              <div className="mt-3 rounded-xl border border-amber-200/20 bg-amber-300/10 p-3 text-sm text-amber-50">
-                {rumiMessage}
-              </div>
-            </div>
 
-            <div className="rounded-3xl border border-orange-200/20 bg-slate-900/75 p-4 shadow-xl backdrop-blur">
-              <p className="text-sm font-bold text-amber-200">게임 정보</p>
-              <div className="mt-2 space-y-1 text-xs text-slate-300">
-                <p>모드: {modeLabel(mode)}</p>
-                <p>분석 모델: {DEFAULT_ANALYZE_MODEL}</p>
-                <p>조리 액션 모델: {DEFAULT_ACTION_MODEL}</p>
-                <p>조리 단계 수: {cookingLogs.length}</p>
-              </div>
-            </div>
-
-            {globalError ? (
-              <div className="rounded-3xl border border-rose-300/40 bg-rose-500/10 p-4 text-sm text-rose-100">
-                {globalError}
-              </div>
-            ) : null}
-          </aside>
+              {globalError ? (
+                <div className="rounded-3xl border border-rose-300/40 bg-rose-500/10 p-4 text-sm text-rose-100">
+                  {globalError}
+                </div>
+              ) : null}
+            </aside>
+          )}
         </section>
       </main>
     </div>
