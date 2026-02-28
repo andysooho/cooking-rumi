@@ -10,7 +10,7 @@
 [![Gemini in Entertainment](https://img.shields.io/badge/Google%20Hackathon-Gemini%20in%20Entertainment-4285F4?style=for-the-badge&logo=google&logoColor=white)](https://google.com)
 [![Next.js](https://img.shields.io/badge/Next.js-16-black?style=for-the-badge&logo=next.js)](https://nextjs.org)
 [![PixiJS](https://img.shields.io/badge/PixiJS-v8-e91e63?style=for-the-badge)](https://pixijs.com)
-[![Gemini API](https://img.shields.io/badge/Gemini%20API-2.5%20Flash-34a853?style=for-the-badge&logo=google)](https://ai.google.dev)
+[![Gemini API](https://img.shields.io/badge/Gemini%203%20-34a853?style=for-the-badge&logo=google)](https://ai.google.dev)
 [![Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-000000?style=for-the-badge&logo=vercel)](https://vercel.com)
 
 </div>
@@ -25,8 +25,8 @@
 
 사용자가 실제 냉장고 속 재료 사진을 업로드하면, AI 셰프 **루미(Rumi)**가 재료를 자동으로 인식하고 픽셀 아트 이미지로 변환합니다. 이후 선택한 모드에 따라 최고의 요리를 선정하고, 사용자는 픽셀 아트 주방에서 재료를 조리도구에 **드래그 앤 드롭**하며 요리를 완성합니다. 마지막으로 AI가 사용자의 요리 과정을 정답 레시피와 비교해 **일치율 점수**와 함께 전문 셰프의 피드백을 제공합니다.
 
-> 🏆 **Google Gemini Hackathon — "Gemini in Entertainment"** 출품작
-> 한국 엔터테인먼트 강점(게임 + 요리 문화)에 Google AI를 결합한 차세대 에듀테인먼트 게임입니다.
+> 🏆 **"Gemini in Entertainment"**
+> Edu Game
 
 ---
 
@@ -77,30 +77,6 @@
 #### 사전 요구사항
 - Node.js 20+
 - Google Gemini API 키 ([Google AI Studio](https://aistudio.google.com)에서 발급)
-
-#### 설치 및 실행
-
-```bash
-# 저장소 클론
-git clone https://github.com/your-org/gemini-hackathon-project.git
-cd gemini-hackathon-project
-
-# 패키지 설치
-npm install
-
-# 환경 변수 설정
-cp .env.local.example .env.local
-# .env.local 파일에 GEMINI_API_KEY=your_api_key_here 입력
-
-# 개발 서버 실행
-npm run dev
-```
-
-브라우저에서 `http://localhost:3000` 접속 (데스크탑 권장)
-
----
-
-
 
 ---
 
@@ -195,19 +171,3 @@ Korea has a deep-rooted love for retro gaming aesthetics and street food culture
 - 🍜 **Culturally resonant** — cooking is a universal language in Korea
 - 📚 **Educational** — players learn real cooking techniques through play
 - 🤩 **Surprising** — your actual fridge ingredients become game sprites
-
----
-
-## 📜 License
-
-MIT License © 2026 Please, My Fridge! Team
-
----
-
-<div align="center">
-
-**Made with ❤️ and 🍳 for Google Gemini Hackathon 2026**
-
-*Powered by [Google Gemini API](https://ai.google.dev) · Built with [Next.js](https://nextjs.org) · Rendered by [PixiJS](https://pixijs.com)*
-
-</div>
