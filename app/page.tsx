@@ -877,29 +877,19 @@ export default function Home() {
             ) : null}
 
             {screen === "cooking" ? (
-              <div className="space-y-4">
-                {/* Rumi compact bar (sidebar is hidden in cooking) */}
-                <div className="flex items-center gap-3 rounded-2xl border border-orange-200/20 bg-slate-800/60 px-4 py-2">
-                  <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-lg border border-slate-700 bg-slate-800">
-                    <Image src="/assets/sprites/rumi-chef.png" alt="루미" fill className="object-contain" />
-                  </div>
-                  <p className="text-sm text-amber-50">{rumiMessage}</p>
-                  {cookingLogs.length > 0 && (
-                    <span className="ml-auto shrink-0 rounded-lg bg-amber-400/15 px-2 py-0.5 text-[10px] font-bold text-amber-300">
-                      조리 {cookingLogs.length}회
-                    </span>
-                  )}
-                </div>
-                {globalError && (
-                  <div className="rounded-xl border border-rose-300/40 bg-rose-500/10 p-3 text-sm text-rose-100">
-                    {globalError}
-                  </div>
-                )}
-                {/* Top bar: mission name + hint button */}
-                <div className="flex items-center justify-between rounded-2xl border border-amber-300/20 bg-amber-400/10 px-4 py-3">
-                  <div>
-                    <p className="text-[10px] uppercase tracking-[0.2em] text-amber-400">🎯 Mission</p>
-                    <p className="text-lg font-black text-amber-100">{recipe?.dishName ?? "요리"}</p>
+              <div className="space-y-3">
+                {/* Top bar: mission + status + hint */}
+                <div className="flex items-center justify-between rounded-2xl border border-amber-300/20 bg-amber-400/10 px-4 py-2">
+                  <div className="flex items-center gap-3">
+                    <div>
+                      <p className="text-[10px] uppercase tracking-[0.2em] text-amber-400">🎯 Mission</p>
+                      <p className="text-base font-black text-amber-100 md:text-lg">{recipe?.dishName ?? "요리"}</p>
+                    </div>
+                    {cookingLogs.length > 0 && (
+                      <span className="rounded-lg bg-amber-400/15 px-2 py-0.5 text-[10px] font-bold text-amber-300">
+                        STEP {cookingLogs.length}
+                      </span>
+                    )}
                   </div>
                   <div className="flex items-center gap-2">
                     {isActionLoading && (
@@ -910,7 +900,7 @@ export default function Home() {
                     <button
                       type="button"
                       onClick={() => setShowHintModal(true)}
-                      className="flex h-10 w-10 items-center justify-center rounded-xl border border-amber-300/40 bg-amber-400/15 text-lg transition hover:bg-amber-300/25 animate-float"
+                      className="flex h-9 w-9 items-center justify-center rounded-xl border border-amber-300/40 bg-amber-400/15 text-lg transition hover:bg-amber-300/25 animate-float"
                       title="힌트 다시 보기"
                     >
                       ❓
@@ -918,19 +908,24 @@ export default function Home() {
                   </div>
                 </div>
 
-                {/* Main cooking area */}
-                <div className="grid gap-4 lg:grid-cols-[1fr_1fr]">
-                  {/* Ingredient tray */}
+                {globalError && (
+                  <div className="rounded-xl border border-rose-300/40 bg-rose-500/10 p-3 text-sm text-rose-100">
+                    {globalError}
+                  </div>
+                )}
+
+                {/* === 3-Column Game Layout === */}
+                <div className="grid grid-cols-1 gap-3 lg:grid-cols-[1fr_auto_1fr]">
+
+                  {/* ── LEFT: Ingredient Tray ── */}
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <h3 className="text-sm font-bold tracking-wider text-amber-300">
-                        🧊 재료 트레이
-                      </h3>
-                      <span className="rounded-lg bg-slate-800 px-2 py-0.5 text-[10px] text-slate-400">
-                        {selectedIngredientIds.size > 0 ? `${selectedIngredientIds.size}개 선택됨` : "클릭으로 선택"}
+                      <h3 className="text-xs font-bold tracking-wider text-amber-300">🧊 재료</h3>
+                      <span className="rounded bg-slate-800 px-1.5 py-0.5 text-[10px] text-slate-400">
+                        {selectedIngredientIds.size > 0 ? `${selectedIngredientIds.size}개 선택` : "클릭 선택"}
                       </span>
                     </div>
-                    <div className="game-scrollbar grid max-h-[50vh] grid-cols-2 gap-2 overflow-y-auto rounded-2xl border border-slate-700 bg-slate-800/60 p-2 md:grid-cols-3">
+                    <div className="game-scrollbar grid max-h-[58vh] grid-cols-2 gap-1.5 overflow-y-auto rounded-2xl border border-slate-700 bg-slate-800/60 p-2">
                       {inventory.map((item) => {
                         const isSelected = selectedIngredientIds.has(item.id);
                         const isLoadingArt = loadingArtIds.has(item.id);
@@ -945,30 +940,30 @@ export default function Home() {
                                 : [item.id];
                               event.dataTransfer.setData("text/plain", JSON.stringify(ids));
                             }}
-                            className={`ingredient-card cursor-grab rounded-xl border bg-slate-900/70 p-2 active:cursor-grabbing ${isSelected ? "selected border-amber-400/80" : "border-slate-600"
+                            className={`ingredient-card cursor-grab rounded-xl border bg-slate-900/70 p-1.5 active:cursor-grabbing ${isSelected ? "selected border-amber-400/80" : "border-slate-600"
                               }`}
                           >
-                            <div className="mx-auto flex h-16 w-16 items-center justify-center overflow-hidden rounded-lg border border-slate-700 bg-slate-950">
+                            <div className="mx-auto flex h-14 w-14 items-center justify-center overflow-hidden rounded-lg border border-slate-700 bg-slate-950">
                               {isLoadingArt ? (
                                 <span className="loading-spinner loading-spinner-sm" />
                               ) : item.imageDataUrl ? (
                                 <Image
                                   src={item.imageDataUrl}
                                   alt={item.name}
-                                  width={64}
-                                  height={64}
+                                  width={56}
+                                  height={56}
                                   unoptimized
-                                  className="h-16 w-16 object-contain"
+                                  className="h-14 w-14 object-contain"
                                 />
                               ) : (
-                                <span className="text-xs text-slate-400">{item.name.slice(0, 4)}</span>
+                                <span className="text-[10px] text-slate-400">{item.name.slice(0, 4)}</span>
                               )}
                             </div>
-                            <p className="mt-1 line-clamp-2 text-center text-[11px] font-semibold text-slate-200">
+                            <p className="mt-1 line-clamp-1 text-center text-[10px] font-semibold text-slate-200">
                               {item.name}
                             </p>
-                            <p className="text-center text-[10px] text-slate-400">
-                              {item.source === "fridge" ? "🥬 원재료" : "🍳 중간결과"}
+                            <p className="text-center text-[9px] text-slate-500">
+                              {item.source === "fridge" ? "원재료" : "중간결과"}
                             </p>
                           </div>
                         );
@@ -976,12 +971,71 @@ export default function Home() {
                     </div>
                   </div>
 
-                  {/* Tool zone + cooking log */}
-                  <div className="space-y-3">
-                    <h3 className="text-sm font-bold tracking-wider text-amber-300">
-                      🔧 조리 도구
-                    </h3>
-                    <div className="grid grid-cols-2 gap-2">
+                  {/* ── CENTER: Rumi Character + Cooking Log + Finish ── */}
+                  <div className="flex flex-col items-center gap-3 lg:w-56">
+                    {/* Rumi Character */}
+                    <div className="flex flex-col items-center">
+                      <div className="relative h-28 w-28 animate-float overflow-hidden rounded-2xl border-2 border-amber-300/30 bg-gradient-to-b from-slate-800 to-slate-900 shadow-lg shadow-amber-400/10">
+                        <Image
+                          src="/assets/sprites/rumi-chef.png"
+                          alt="AI 셰프 루미"
+                          fill
+                          className="object-contain p-1"
+                        />
+                      </div>
+                      <p className="mt-1 text-[10px] font-bold text-amber-300">AI 셰프 루미</p>
+                    </div>
+
+                    {/* Speech bubble */}
+                    <div className="relative w-full rounded-2xl border border-amber-200/20 bg-amber-300/10 px-3 py-2 text-center text-xs leading-relaxed text-amber-50">
+                      <div className="absolute -top-2 left-1/2 h-3 w-3 -translate-x-1/2 rotate-45 border-l border-t border-amber-200/20 bg-amber-300/10" />
+                      {rumiMessage}
+                    </div>
+
+                    {/* Cooking Log */}
+                    <div className="w-full rounded-2xl border border-slate-700 bg-slate-800/80 p-2">
+                      <p className="text-[10px] font-bold tracking-wider text-amber-300">📋 조리 로그</p>
+                      <div className="game-scrollbar mt-1.5 max-h-32 space-y-1.5 overflow-y-auto text-[11px] text-slate-200">
+                        {cookingLogs.length === 0 ? (
+                          <p className="text-center text-slate-500 italic">재료를 도구에 넣어보세요!</p>
+                        ) : (
+                          cookingLogs
+                            .slice()
+                            .reverse()
+                            .map((log) => (
+                              <div key={log.id} className="cooking-log-item flex flex-wrap items-center gap-1">
+                                <span className="text-slate-300">{log.ingredient}</span>
+                                <span className="text-amber-400">+</span>
+                                <span className="text-slate-300">{log.tool}</span>
+                                <span className="text-amber-400">=</span>
+                                <span className="font-bold text-amber-200">{log.result}</span>
+                              </div>
+                            ))
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Finish button */}
+                    <button
+                      type="button"
+                      onClick={onFinishCooking}
+                      disabled={!canFinishCooking || isEvaluating || isActionLoading}
+                      className="w-full rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-400 px-4 py-2.5 text-sm font-black text-slate-900 shadow-lg transition hover:from-emerald-400 hover:to-emerald-300 disabled:cursor-not-allowed disabled:from-emerald-200/60 disabled:to-emerald-200/60"
+                    >
+                      {isEvaluating ? (
+                        <span className="flex items-center justify-center gap-2">
+                          <span className="loading-spinner loading-spinner-sm" /> AI 평가 중...
+                        </span>
+                      ) : (
+                        "🍽️ 요리 완료!"
+                      )}
+                    </button>
+                  </div>
+
+                  {/* ── RIGHT: Cooking Tools ── */}
+                  <div className="space-y-2">
+                    <h3 className="text-xs font-bold tracking-wider text-amber-300">🔧 조리 도구</h3>
+                    <div className="grid grid-cols-1 gap-1.5">
                       {TOOLS.map((tool) => (
                         <button
                           key={tool.id}
@@ -1012,67 +1066,28 @@ export default function Home() {
                               void onDropIngredientToTool(Array.from(selectedIngredientIds), tool);
                             }
                           }}
-                          className="tool-zone rounded-xl border border-amber-200/20 bg-slate-800/80 p-3 text-left"
+                          className="tool-zone rounded-xl border border-amber-200/20 bg-slate-800/80 p-2.5 text-left"
                         >
                           <div className="flex items-center gap-2">
-                            <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-lg border border-slate-700 bg-slate-900">
+                            <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-slate-700 bg-slate-900">
                               <Image
                                 src={tool.assetPath}
                                 alt={tool.name}
-                                width={48}
-                                height={48}
-                                className="h-10 w-10 object-contain"
+                                width={40}
+                                height={40}
+                                className="h-8 w-8 object-contain"
                               />
                             </div>
-                            <div>
+                            <div className="min-w-0">
                               <p className="text-sm font-bold text-amber-100">
                                 {tool.emoji} {tool.name}
                               </p>
-                              <p className="text-[10px] text-slate-400">드래그 또는 클릭</p>
+                              <p className="text-[9px] text-slate-400">드래그 또는 클릭</p>
                             </div>
                           </div>
                         </button>
                       ))}
                     </div>
-
-                    {/* Cooking log */}
-                    <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-3">
-                      <p className="text-xs font-bold tracking-wider text-amber-300">📋 조리 로그</p>
-                      <div className="game-scrollbar mt-2 max-h-44 space-y-2 overflow-y-auto text-xs text-slate-200">
-                        {cookingLogs.length === 0 ? (
-                          <p className="text-slate-400 italic">아직 조리 내역이 없습니다.</p>
-                        ) : (
-                          cookingLogs
-                            .slice()
-                            .reverse()
-                            .map((log) => (
-                              <div key={log.id} className="cooking-log-item flex items-center gap-1.5">
-                                <span className="text-slate-300">{log.ingredient}</span>
-                                <span className="text-amber-400">+</span>
-                                <span className="text-slate-300">{log.tool}</span>
-                                <span className="text-amber-400">=</span>
-                                <span className="font-bold text-amber-200">{log.result}</span>
-                              </div>
-                            ))
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Finish button */}
-                    <button
-                      type="button"
-                      onClick={onFinishCooking}
-                      disabled={!canFinishCooking || isEvaluating || isActionLoading}
-                      className="w-full rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-400 px-4 py-3 text-sm font-black text-slate-900 shadow-lg transition hover:from-emerald-400 hover:to-emerald-300 disabled:cursor-not-allowed disabled:from-emerald-200/60 disabled:to-emerald-200/60"
-                    >
-                      {isEvaluating ? (
-                        <span className="flex items-center justify-center gap-2">
-                          <span className="loading-spinner loading-spinner-sm" /> AI 평가 중...
-                        </span>
-                      ) : (
-                        "🍽️ 요리 완료!"
-                      )}
-                    </button>
                   </div>
                 </div>
 
