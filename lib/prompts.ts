@@ -21,11 +21,16 @@ export function buildRecipeSelectionPrompt(
 ): string {
   const modeText = mode === "delicious" ? "가장 맛있는 정통 요리" : "가장 독창적인 퓨전 요리";
   return [
-    `당신은 ${modeLabel(mode)} 전문 셰프입니다.`,
-    `주어진 재료로 만들 수 있는 ${modeText}를 1개 선정하세요.`,
+    `당신은 친한 친구 같은 AI 셰프 "루미"야. 반말로 말해.`,
+    `게임 모드는 "${modeLabel(mode)}"이야.`,
+    `주어진 재료로 만들 수 있는 ${modeText}를 1개 골라줘.`,
     `재료: ${ingredientNames.join(", ")}`,
+    "",
+    "description은 친한 친구한테 추천하듯 신나고 재밌는 한 줄 설명으로 써줘.",
+    "hints는 친구한테 살짝 귀띔해주듯 친근하고 짧은 반말 3개로 써줘. (예: '양파 먼저 볶으면 훨씬 맛있어!')",
+    "",
     "반드시 아래 JSON 형식만 출력하세요.",
-    '{"dishName":"요리명","dishNameEn":"English Name","description":"짧은 설명","hints":["힌트1","힌트2","힌트3"],"recipe":{"steps":[{"order":1,"action":"마늘을 다진다","tool":"도마","ingredients":["마늘"],"result":"다진 마늘"}],"tips":"팁","totalTime":"20분"}}',
+    '{"dishName":"요리명","dishNameEn":"English Name","description":"친근한 설명","hints":["힌트1","힌트2","힌트3"],"recipe":{"steps":[{"order":1,"action":"마늘을 다진다","tool":"도마","ingredients":["마늘"],"result":"다진 마늘"}],"tips":"팁","totalTime":"20분"}}',
     "steps는 최소 5개 이상으로 작성하세요.",
     "tool은 도마, 프라이팬, 냄비, 믹싱볼, 오븐, 그릴 중 하나를 우선 사용하세요.",
   ].join("\n");
@@ -36,10 +41,14 @@ export function buildCookingActionPrompt(
   tool: string,
 ): string {
   return [
-    "당신은 요리 게임의 AI입니다.",
-    "재료와 조리도구의 조합 결과를 짧고 명확하게 JSON으로 답하세요.",
+    `당신은 요리 게임의 친구 같은 AI 셰프 "루미"야. 반말 사용해.`,
+    "재료와 조리도구의 조합 결과를 짧고 명확하게 JSON으로 답해줘.",
     `입력: ${ingredient} + ${tool}`,
-    '형식: {"result":"다진 양파","resultEn":"chopped onion","reaction":"좋은 선택이야!","emoji":"🔪"}',
+    "",
+    "reaction은 친구가 옆에서 응원하거나 리액션하는 느낌으로! 재밌고 생동감 있게 써줘.",
+    '(예: "오 그거 완전 좋은 선택이야!", "우와 냄새 벌써 좋다~!", "ㅋㅋ 대박 기대돼!")',
+    "",
+    '형식: {"result":"다진 양파","resultEn":"chopped onion","reaction":"오 좋아! 양파 다지니까 벌써 눈물 나려고 하잖아 ㅋㅋ","emoji":"🔪"}',
     "한국어 중심으로 작성하세요.",
   ].join("\n");
 }
@@ -68,15 +77,21 @@ export function buildEvaluationPrompt(
   finalDish: string,
 ): string {
   return [
-    '당신은 친근한 AI 셰프 "루미"입니다.',
+    `당신은 친한 친구 같은 AI 셰프 "루미"야. 반말을 사용해.`,
     `게임 모드: ${modeLabel(mode)}`,
-    "정답 레시피와 사용자의 조리 과정을 비교해 평가하세요.",
-    "재미있고 따뜻한 말투를 사용하되, 구체적 피드백을 주세요.",
+    "",
+    "정답 레시피와 사용자의 조리 과정을 비교해서 평가해줘.",
+    "evaluation은 친한 친구한테 말하듯 재밌고 따뜻한 반말로 써줘!",
+    '(좋은 예: "야 이거 진짜 잘했어!! 양파 먼저 볶은 거 센스 대박이다 ㅋㅋ 다만 소금은 좀 일찍 넣었으면 더 완벽했을 텐데~")',
+    '(나쁜 예: "전반적으로 양호한 조리 결과입니다." ← 이런 딱딱한 말투 절대 금지!)',
+    "",
+    "missedSteps랑 bonusPoints도 친근하게 써줘.",
+    "fullRecipeNarrative는 요리 이야기를 들려주듯 재밌게 서술해줘.",
+    "",
     `정답 레시피 JSON: ${JSON.stringify(recipe)}`,
     `사용자 조리 로그 JSON: ${JSON.stringify(logs)}`,
     `최종 요리: ${finalDish}`,
     "반드시 JSON으로만 응답하세요.",
-    '{"matchRate":87,"evaluation":"평가 문장","missedSteps":["빠진 단계"],"bonusPoints":["잘한 점"],"fullRecipeNarrative":"전체 레시피 설명"}',
+    '{"matchRate":87,"evaluation":"친구처럼 친근한 평가 문장","missedSteps":["빠진 단계"],"bonusPoints":["잘한 점"],"fullRecipeNarrative":"재밌는 전체 레시피 이야기"}',
   ].join("\n");
 }
-

@@ -1,7 +1,9 @@
 "use client";
 
 import Image from "next/image";
-import { FormEvent, useCallback, useMemo, useState } from "react";
+import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
+
+import { playBgmForScreen, playSfx, playSfxForTool, stopBgm } from "@/lib/audio";
 
 import type {
   CookingActionResponse,
@@ -258,6 +260,12 @@ export default function Home() {
   const [screen, setScreen] = useState<Screen>("title");
   const [mode, setMode] = useState<GameMode>("delicious");
 
+  // BGM: auto-switch on screen change
+  useEffect(() => {
+    playBgmForScreen(screen);
+    return () => { };
+  }, [screen]);
+
   const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([]);
   const [uploading, setUploading] = useState(false);
 
@@ -311,6 +319,7 @@ export default function Home() {
   }, []);
 
   const onModeSelect = (nextMode: GameMode) => {
+    playSfx("buttonClick");
     setMode(nextMode);
     setScreen("upload");
     setRumiMessage(
@@ -495,6 +504,7 @@ export default function Home() {
       setRumiMessage(action.reaction || "좋아, 다음 단계로 이어가 보자!");
       setCurrentDishName(resultName);
       setSelectedIngredientIds(new Set());
+      playSfxForTool(tool.name);
 
       setLoadingArtIds((prev) => new Set(prev).add(newIngredientId));
       void postJson<{ imageDataUrl: string }>("/api/generate-cooking-art", {
@@ -532,6 +542,7 @@ export default function Home() {
 
     setIsEvaluating(true);
     setGlobalError(null);
+    playSfx("cookingComplete");
 
     try {
       const [evaluationResponse, finalArtResponse] = await Promise.all([
@@ -559,6 +570,8 @@ export default function Home() {
   };
 
   const onRestart = () => {
+    playSfx("buttonClick");
+    stopBgm();
     setScreen("title");
     setMode("delicious");
     setUploadedImages([]);
