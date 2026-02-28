@@ -41,7 +41,7 @@ type ToolDef = {
 const DEFAULT_ANALYZE_MODEL = "gemini-2.5-flash";
 const DEFAULT_ACTION_MODEL = "gemini-2.0-flash-lite";
 const DEFAULT_RECIPE_MODEL = "gemini-2.5-flash";
-const DEFAULT_IMAGE_MODEL = "gemini-3-pro-image-preview";
+const DEFAULT_IMAGE_MODEL = "gemini-3.1-flash-image-preview";
 
 const TOOLS: ToolDef[] = [
   {

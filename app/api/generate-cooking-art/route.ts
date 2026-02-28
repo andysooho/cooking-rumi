@@ -7,7 +7,7 @@ import { buildCookingArtPrompt } from "@/lib/prompts";
 
 export const runtime = "nodejs";
 
-const DEFAULT_MODEL = "gemini-3-pro-image-preview";
+const DEFAULT_MODEL = "gemini-3.1-flash-image-preview";
 
 function toErrorMessage(error: unknown): string {
   if (error instanceof Error) {

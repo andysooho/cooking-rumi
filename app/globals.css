@@ -48,7 +48,7 @@ textarea {
 }
 
 pre {
-  font-family: var(--font-geist-mono), monospace;
+  font-family: "Mulmaru", var(--font-geist-sans), sans-serif;
 }
 
 /* ───────────── Game-like Animations ───────────── */

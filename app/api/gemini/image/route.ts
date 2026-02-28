@@ -5,7 +5,7 @@ import { getGeminiClient } from "@/lib/gemini";
 
 export const runtime = "nodejs";
 
-const DEFAULT_IMAGE_MODEL = "gemini-3-pro-image-preview";
+const DEFAULT_IMAGE_MODEL = "gemini-3.1-flash-image-preview";
 
 function toErrorMessage(error: unknown): string {
   if (error instanceof Error) {

@@ -7,7 +7,7 @@ import { buildPixelArtPrompt } from "@/lib/prompts";
 
 export const runtime = "nodejs";
 
-const DEFAULT_MODEL = "gemini-3-pro-image-preview";
+const DEFAULT_MODEL = "gemini-3.1-flash-image-preview";
 
 type IngredientInput = {
   name?: unknown;
