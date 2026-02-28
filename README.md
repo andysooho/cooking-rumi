@@ -28,7 +28,6 @@
 > 🏆 **"Gemini in Entertainment"**
 > Edu Game
 
----
 
 ### ✨ 핵심 특징
 
@@ -171,3 +170,6 @@ Korea has a deep-rooted love for retro gaming aesthetics and street food culture
 - 🍜 **Culturally resonant** — cooking is a universal language in Korea
 - 📚 **Educational** — players learn real cooking techniques through play
 - 🤩 **Surprising** — your actual fridge ingredients become game sprites
+
+
+![Game Result](public/result.jpg)
